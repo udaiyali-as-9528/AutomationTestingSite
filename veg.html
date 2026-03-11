@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zomato Clone - Vegetarian</title>
+    <style>
+        :root { --primary-red: #e23744; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f8f9fa; }
+        header {
+            background: var(--primary-red); color: white; padding: 15px 5%;
+            display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100;
+        }
+        .logo { font-size: 28px; font-weight: bold; }
+        nav a { color: white; text-decoration: none; margin: 0 15px; font-weight: 500; }
+        .header-right { display: flex; align-items: center; gap: 20px; }
+        #cart-icon { position: relative; cursor: pointer; font-size: 24px; }
+        #cartCount {
+            position: absolute; top: -8px; right: -8px; background: #fff; color: var(--primary-red);
+            font-size: 12px; width: 20px; height: 20px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; font-weight: bold;
+        }
+        #userInfo { display: flex; align-items: center; gap: 10px; font-size: 15px; }
+        main { padding: 40px 5%; }
+        h1 { text-align: center; font-size: 42px; margin-bottom: 40px; color: #222; }
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 30px;
+        }
+        .food-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+        }
+        .food-card:hover { transform: translateY(-8px); box-shadow: 0 15px 25px rgba(0,0,0,0.15); }
+        .food-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .food-info {
+            padding: 18px;
+            text-align: center;
+        }
+        .food-info h3 { font-size: 20px; margin-bottom: 6px; }
+        .food-info p { color: #666; font-size: 14px; margin-bottom: 12px; }
+        .price { font-size: 22px; font-weight: bold; color: var(--primary-red); }
+        .add-btn {
+            background: var(--primary-red);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            margin-top: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+        }
+        footer {
+            background: #222; color: #ddd; text-align: center; padding: 30px 5%; margin-top: 80px;
+        }
+        /* Modal same as index */
+        .modal { display: none; position: fixed; z-index: 200; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); }
+        .modal-content {
+            background: white; margin: 8% auto; padding: 30px; width: 90%; max-width: 420px;
+            border-radius: 12px; position: relative;
+        }
+        .close { position: absolute; right: 20px; top: 15px; font-size: 28px; cursor: pointer; }
+        input[type="email"], input[type="password"] {
+            width: 100%; padding: 14px; margin: 12px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px;
+        }
+        .btn { background: var(--primary-red); color: white; border: none; padding: 14px 30px; font-size: 16px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 10px; }
+    </style>
+</head>
+<body onload="initPage()">
+    <!-- HEADER (same as index) -->
+    <header>
+        <div class="logo">Zomato</div>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="veg.html">Veg</a>
+            <a href="nonVeg.html">Non-Veg</a>
+            <a href="italian.html">Italian</a>
+            <a href="contact.html">Contact</a>
+            <a href="cart.html">Cart</a>
+        </nav>
+        <div class="header-right">
+            <div id="cart-icon" onclick="goToCart()">🛒 <span id="cartCount">0</span></div>
+            <div id="userInfo"></div>
+        </div>
+    </header>
+
+    <main>
+        <h1>🌱 Vegetarian Menu</h1>
+        <div class="menu-grid" id="vegGrid">
+            <!-- Populated by JS -->
+        </div>
+    </main>
+
+    <footer>
+        &copy; 2026 Zomato Clone • Chengalpattu
+    </footer>
+
+    <!-- LOGIN MODAL -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="hideLoginModal()">&times;</span>
+            <h2 style="margin-bottom:20px;text-align:center;color:#222;">Login to Zomato</h2>
+            <input type="email" id="loginEmail" placeholder="Email (any value)" required>
+            <input type="password" id="loginPassword" placeholder="Password (any value)" required>
+            <button onclick="handleLogin()" class="btn">Login</button>
+        </div>
+    </div>
+
+    <script>
+        // Shared functions
+        function getCart() { return JSON.parse(localStorage.getItem('cart')) || []; }
+        function saveCart(cart) { localStorage.setItem('cart', JSON.stringify(cart)); }
+        function updateCartCount() {
+            const cart = getCart();
+            let count = 0;
+            cart.forEach(item => count += item.qty);
+            document.getElementById('cartCount').textContent = count;
+        }
+        function updateUserDisplay() {
+            const userID = localStorage.getItem('userID');
+            const userDiv = document.getElementById('userInfo');
+            if (userID) {
+                userDiv.innerHTML = `Hi, ${userID.split('@')[0]} <button onclick="logout()" style="margin-left:10px;padding:6px 12px;font-size:13px;background:#fff;color:var(--primary-red);border:none;border-radius:6px;cursor:pointer;">Logout</button>`;
+            } else {
+                userDiv.innerHTML = `<button onclick="showLoginModal()" style="padding:8px 18px;background:#fff;color:var(--primary-red);border:none;border-radius:6px;cursor:pointer;font-weight:600;">Login</button>`;
+            }
+        }
+        function handleLogin() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const pass = document.getElementById('loginPassword').value.trim();
+            if (email && pass) {
+                localStorage.setItem('userID', email);
+                hideLoginModal();
+                updateUserDisplay();
+            } else {
+                alert('Please enter any email and password');
+            }
+        }
+        function logout() {
+            localStorage.removeItem('userID');
+            updateUserDisplay();
+        }
+        function showLoginModal() { document.getElementById('loginModal').style.display = 'block'; }
+        function hideLoginModal() { document.getElementById('loginModal').style.display = 'none'; }
+        function goToCart() { window.location.href = 'cart.html'; }
+
+        // Veg items
+        const vegItems = [
+            { id: 'v1', name: 'Paneer Tikka', price: 250, img: 'https://picsum.photos/id/1015/600/400' },
+            { id: 'v2', name: 'Veg Biryani', price: 220, img: 'https://picsum.photos/id/102/600/400' },
+            { id: 'v3', name: 'Dal Makhani', price: 180, img: 'https://picsum.photos/id/201/600/400' },
+            { id: 'v4', name: 'Palak Paneer', price: 240, img: 'https://picsum.photos/id/251/600/400' }
+        ];
+
+        function addToCart(id, name, price) {
+            let cart = getCart();
+            const existing = cart.find(item => item.id === id);
+            if (existing) {
+                existing.qty++;
+            } else {
+                cart.push({ id, name, price, qty: 1 });
+            }
+            saveCart(cart);
+            updateCartCount();
+            alert(`${name} added to cart!`);
+        }
+
+        function renderVegMenu() {
+            const grid = document.getElementById('vegGrid');
+            let html = '';
+            vegItems.forEach(item => {
+                html += `
+                    <div class="food-card">
+                        <img src="${item.img}" alt="${item.name}">
+                        <div class="food-info">
+                            <h3>${item.name}</h3>
+                            <p>Spicy &amp; fresh</p>
+                            <div class="price">₹${item.price}</div>
+                            <button onclick="addToCart('${item.id}', '${item.name}', ${item.price})" class="add-btn">Add to Cart</button>
+                        </div>
+                    </div>
+                `;
+            });
+            grid.innerHTML = html;
+        }
+
+        function initPage() {
+            renderVegMenu();
+            updateCartCount();
+            updateUserDisplay();
+        }
+    </script>
+</body>
+</html>

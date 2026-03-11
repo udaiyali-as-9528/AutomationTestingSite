@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zomato Clone - Cart</title>
+    <style>
+        :root { --primary-red: #e23744; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f8f9fa; }
+        header { background: var(--primary-red); color: white; padding: 15px 5%; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .logo { font-size: 28px; font-weight: bold; }
+        nav a { color: white; text-decoration: none; margin: 0 15px; font-weight: 500; }
+        .header-right { display: flex; align-items: center; gap: 20px; }
+        #cart-icon { position: relative; cursor: pointer; font-size: 24px; }
+        #cartCount { position: absolute; top: -8px; right: -8px; background: #fff; color: var(--primary-red); font-size: 12px; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        #userInfo { display: flex; align-items: center; gap: 10px; font-size: 15px; }
+        main { padding: 40px 5%; max-width: 900px; margin: 0 auto; }
+        h1 { text-align: center; margin-bottom: 30px; font-size: 38px; }
+        #cartItems { margin-bottom: 30px; }
+        .cart-item {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+        .total {
+            font-size: 26px;
+            text-align: right;
+            margin: 30px 0;
+            color: var(--primary-red);
+        }
+        .btn {
+            background: var(--primary-red);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+            display: block;
+        }
+        .modal { display: none; position: fixed; z-index: 200; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); }
+        .modal-content { background: white; margin: 8% auto; padding: 30px; width: 90%; max-width: 420px; border-radius: 12px; position: relative; }
+        .close { position: absolute; right: 20px; top: 15px; font-size: 28px; cursor: pointer; }
+        input[type="email"], input[type="password"] { width: 100%; padding: 14px; margin: 12px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; }
+        footer { background: #222; color: #ddd; text-align: center; padding: 30px 5%; margin-top: 80px; }
+    </style>
+</head>
+<body onload="initPage()">
+    <!-- HEADER -->
+    <header>
+        <div class="logo">Zomato</div>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="veg.html">Veg</a>
+            <a href="nonVeg.html">Non-Veg</a>
+            <a href="italian.html">Italian</a>
+            <a href="contact.html">Contact</a>
+            <a href="cart.html">Cart</a>
+        </nav>
+        <div class="header-right">
+            <div id="cart-icon" onclick="goToCart()">🛒 <span id="cartCount">0</span></div>
+            <div id="userInfo"></div>
+        </div>
+    </header>
+
+    <main>
+        <h1>Your Cart</h1>
+        <div id="cartItems"></div>
+        <div class="total">Total: ₹<span id="cartTotal">0</span></div>
+        <button onclick="proceedToPayment()" class="btn">Proceed to Payment &amp; Checkout</button>
+    </main>
+
+    <footer>
+        &copy; 2026 Zomato Clone • Chengalpattu
+    </footer>
+
+    <!-- LOGIN MODAL -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="hideLoginModal()">&times;</span>
+            <h2 style="margin-bottom:20px;text-align:center;color:#222;">Login to Zomato</h2>
+            <input type="email" id="loginEmail" placeholder="Email (any value)" required>
+            <input type="password" id="loginPassword" placeholder="Password (any value)" required>
+            <button onclick="handleLogin()" class="btn">Login</button>
+        </div>
+    </div>
+
+    <script>
+        function getCart() { return JSON.parse(localStorage.getItem('cart')) || []; }
+        function saveCart(cart) { localStorage.setItem('cart', JSON.stringify(cart)); }
+        function updateCartCount() {
+            const cart = getCart();
+            let count = 0;
+            cart.forEach(item => count += item.qty);
+            document.getElementById('cartCount').textContent = count;
+        }
+        function updateUserDisplay() {
+            const userID = localStorage.getItem('userID');
+            const userDiv = document.getElementById('userInfo');
+            if (userID) {
+                userDiv.innerHTML = `Hi, ${userID.split('@')[0]} <button onclick="logout()" style="margin-left:10px;padding:6px 12px;font-size:13px;background:#fff;color:var(--primary-red);border:none;border-radius:6px;cursor:pointer;">Logout</button>`;
+            } else {
+                userDiv.innerHTML = `<button onclick="showLoginModal()" style="padding:8px 18px;background:#fff;color:var(--primary-red);border:none;border-radius:6px;cursor:pointer;font-weight:600;">Login</button>`;
+            }
+        }
+        function handleLogin() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const pass = document.getElementById('loginPassword').value.trim();
+            if (email && pass) {
+                localStorage.setItem('userID', email);
+                hideLoginModal();
+                updateUserDisplay();
+            } else {
+                alert('Please enter any email and password');
+            }
+        }
+        function logout() { localStorage.removeItem('userID'); updateUserDisplay(); }
+        function showLoginModal() { document.getElementById('loginModal').style.display = 'block'; }
+        function hideLoginModal() { document.getElementById('loginModal').style.display = 'none'; }
+        function goToCart() { window.location.href = 'cart.html'; }
+
+        function renderCart() {
+            const cart = getCart();
+            const container = document.getElementById('cartItems');
+            let html = '';
+            let total = 0;
+
+            if (cart.length === 0) {
+                container.innerHTML = '<p style="text-align:center;padding:40px;font-size:18px;color:#666;">Your cart is empty. Add some delicious food!</p>';
+                document.getElementById('cartTotal').textContent = '0';
+                return;
+            }
+
+            cart.forEach((item, index) => {
+                const subtotal = item.price * item.qty;
+                total += subtotal;
+                html += `
+                    <div class="cart-item">
+                        <div>
+                            <strong>${item.name}</strong><br>
+                            ₹${item.price} × ${item.qty}
+                        </div>
+                        <div style="text-align:right;">
+                            <strong>₹${subtotal}</strong><br>
+                            <button onclick="removeFromCart(${index})" style="margin-top:8px;background:#ff4d4d;color:white;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;">Remove</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            document.getElementById('cartTotal').textContent = total;
+        }
+
+        function removeFromCart(index) {
+            let cart = getCart();
+            cart.splice(index, 1);
+            saveCart(cart);
+            renderCart();
+            updateCartCount();
+        }
+
+        function proceedToPayment() {
+            const cart = getCart();
+            if (cart.length === 0) {
+                alert('Your cart is empty!');
+                return;
+            }
+            window.location.href = 'payments.html';
+        }
+
+        function initPage() {
+            renderCart();
+            updateCartCount();
+            updateUserDisplay();
+        }
+    </script>
+</body>
+</html>
