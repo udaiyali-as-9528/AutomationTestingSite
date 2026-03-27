@@ -3,79 +3,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zomato Clone - Order Confirmed</title>
+    <title>Zomato Clone - Payments &amp; Checkout</title>
     <style>
         :root { --primary-red: #e23744; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            background: linear-gradient(135deg, #f8f9fa, #fff);
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f8f9fa; }
+        header { background: var(--primary-red); color: white; padding: 15px 5%; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .logo { font-size: 28px; font-weight: bold; }
+        nav a { color: white; text-decoration: none; margin: 0 15px; font-weight: 500; }
+        .header-right { display: flex; align-items: center; gap: 20px; }
+        #cart-icon { position: relative; cursor: pointer; font-size: 24px; }
+        #cartCount { position: absolute; top: -8px; right: -8px; background: #fff; color: var(--primary-red); font-size: 12px; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        #userInfo { display: flex; align-items: center; gap: 10px; font-size: 15px; }
+        main { padding: 40px 5%; max-width: 800px; margin: 0 auto; }
+        h1 { text-align: center; margin-bottom: 40px; font-size: 36px; }
+        .section { background: white; padding: 35px; border-radius: 16px; margin-bottom: 30px; box-shadow: 0 5px 20px rgba(0,0,0,0.07); }
+        label { display: block; margin: 15px 0 6px; font-weight: 600; }
+        input[type="text"], input[type="tel"], input[type="email"], input[type="password"], select {
+            width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;
         }
-        .confirmation-box {
-            background: white;
-            padding: 60px 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            max-width: 520px;
-        }
-        .tick { font-size: 80px; color: #22c55e; margin-bottom: 20px; }
-        h1 { font-size: 42px; color: var(--primary-red); margin-bottom: 15px; }
-        p { font-size: 18px; color: #444; margin: 15px 0; }
-        .order-id {
-            background: #f1f1f1;
-            padding: 12px 24px;
-            border-radius: 8px;
-            display: inline-block;
-            font-family: monospace;
-            font-size: 20px;
-            margin: 20px 0;
-        }
-        .btn {
-            background: var(--primary-red);
-            color: white;
-            border: none;
-            padding: 16px 50px;
-            font-size: 18px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 30px;
-        }
+        .radio-group { display: flex; gap: 30px; margin: 15px 0; }
+        .total-box { font-size: 28px; text-align: center; margin: 25px 0; padding: 20px; background: #f8f9fa; border-radius: 12px; color: var(--primary-red); }
+        .btn { background: var(--primary-red); color: white; border: none; padding: 18px 40px; font-size: 18px; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 20px; }
+        footer { background: #222; color: #ddd; text-align: center; padding: 30px 5%; margin-top: 80px; }
+        .modal { display: none; position: fixed; z-index: 200; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); }
+        .modal-content { background: white; margin: 8% auto; padding: 30px; width: 90%; max-width: 420px; border-radius: 12px; position: relative; }
+        .close { position: absolute; right: 20px; top: 15px; font-size: 28px; cursor: pointer; }
     </style>
 </head>
-<body onload="showConfirmation()">
-    <div class="confirmation-box">
-        <div class="tick">✅</div>
-        <h1>Order Confirmed!</h1>
-        <p>Thank you, <span id="userName" style="font-weight:600;"></span></p>
-        <p>Your delicious food is on the way.</p>
-        <div class="order-id">Order ID: #ZOM<span id="orderId">12345</span></div>
-        <p>Total Amount Paid: ₹<span id="orderTotal" style="font-size:24px;font-weight:bold;color:var(--primary-red);">0</span></p>
-        <p style="font-size:15px;color:#666;">Estimated delivery: 30-40 mins</p>
-        <button onclick="goHome()" class="btn">Back to Home</button>
+<body onload="initPage()">
+    <header>
+        <div class="logo">Zomato</div>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="veg.html">Veg</a>
+            <a href="nonveg.html">Non-Veg</a>
+            <a href="continental.html">Continental</a>
+            <a href="contact.html">Contact</a>
+            <a href="cart.html">Cart</a>
+        </nav>
+        <div class="header-right">
+            <div id="cart-icon" onclick="goToCart()">🛒 <span id="cartCount">0</span></div>
+            <div id="userInfo"></div>
+        </div>
+    </header>
+
+    <main>
+        <h1>Payments &amp; Checkout</h1>
+
+        <div class="section">
+            <h2 style="margin-bottom:20px;color:#222;">💳 Payment Details (Dummy – any values accepted)</h2>
+            <label for="cardNumber">Card Number</label>
+            <input type="text" id="cardNumber" placeholder="4242 4242 4242 4242" maxlength="19">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                <div>
+                    <label for="expiry">Expiry Date</label>
+                    <input type="text" id="expiry" placeholder="MM/YY">
+                </div>
+                <div>
+                    <label for="cvv">CVV</label>
+                    <input type="text" id="cvv" placeholder="123" maxlength="4">
+                </div>
+            </div>
+            <label for="cardholder">Cardholder Name</label>
+            <input type="text" id="cardholder" placeholder="John Doe">
+        </div>
+
+        <div class="section">
+            <form id="checkoutForm" onsubmit="handleSubmit(event)">
+                <h2 style="margin-bottom:25px;color:#222;">📍 Delivery Details</h2>
+                <label for="fullName">Full Name</label>
+                <input type="text" id="fullName" required>
+                <label for="phoneNumber">Phone Number</label>
+                <input type="tel" id="phoneNumber" required>
+                <label style="margin-top:25px;">Delivery Option</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="deliveryOption" value="Home Delivery" checked> Home Delivery</label>
+                    <label><input type="radio" name="deliveryOption" value="Office Delivery"> Office Delivery</label>
+                </div>
+                <label for="deliveryArea">Delivery Area</label>
+                <select id="deliveryArea" required>
+                    <option value="">Select Area</option>
+                    <option value="Chengalpattu">Chengalpattu</option>
+                    <option value="Tambaram">Tambaram</option>
+                    <option value="OMR">OMR</option>
+                    <option value="Velachery">Velachery</option>
+                </select>
+                <div class="total-box">Total Order Value: ₹<span id="totalDisplay">0</span></div>
+                <button type="submit" class="btn">Place Order &amp; Pay</button>
+            </form>
+        </div>
+    </main>
+
+    <footer>&copy; 2026 Zomato Clone • Chengalpattu</footer>
+
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="hideLoginModal()">&times;</span>
+            <h2 style="margin-bottom:20px;text-align:center;color:#222;">Login to Zomato</h2>
+            <input type="email" id="loginEmail" placeholder="Email (any value)" required>
+            <input type="password" id="loginPassword" placeholder="Password (any value)" required>
+            <button onclick="handleLogin()" class="btn">Login</button>
+        </div>
     </div>
 
     <script>
-        function showConfirmation() {
-            const userID = localStorage.getItem('userID') || 'Guest';
-            document.getElementById('userName').textContent = userID.split('@')[0];
+        let totalOrderValue = 0;
 
-            const total = localStorage.getItem('totalOrderValue') || '0';
-            document.getElementById('orderTotal').textContent = total;
+        function getCart() { return JSON.parse(localStorage.getItem('cart')) || []; }
+        function updateCartCount() {
+            const cart = getCart();
+            let count = 0;
+            cart.forEach(item => count += item.qty);
+            document.getElementById('cartCount').textContent = count;
+        }
+        function updateUserDisplay() {
+            const userID = localStorage.getItem('userID');
+            const userDiv = document.getElementById('userInfo');
+            if (userID) {
+                userDiv.innerHTML = `Hi, ${userID.split('@')[0]} <button onclick="logout()" style="margin-left:10px;padding:6px 12px;font-size:13px;background:#fff;color:var(--primary-red);border:none;border-radius:6px;cursor:pointer;">Logout</button>`;
+            } else {
+                userDiv.innerHTML = `<button onclick="showLoginModal()" style="padding:8px 18px;background:#fff;color:var(--primary-red);border:none;border-radius:6px;cursor:pointer;font-weight:600;">Login</button>`;
+            }
+        }
+        function handleLogin() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const pass = document.getElementById('loginPassword').value.trim();
+            if (email && pass) {
+                localStorage.setItem('userID', email);
+                hideLoginModal();
+                updateUserDisplay();
+            } else {
+                alert('Please enter any email and password');
+            }
+        }
+        function logout() { localStorage.removeItem('userID'); updateUserDisplay(); }
+        function showLoginModal() { document.getElementById('loginModal').style.display = 'block'; }
+        function hideLoginModal() { document.getElementById('loginModal').style.display = 'none'; }
+        function goToCart() { window.location.href = 'cart.html'; }
 
-            const randomId = Math.floor(10000 + Math.random() * 90000);
-            document.getElementById('orderId').textContent = randomId;
-
-            localStorage.removeItem('cart');
-            localStorage.removeItem('totalOrderValue');
+        function calculateTotal() {
+            const cart = getCart();
+            totalOrderValue = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            document.getElementById('totalDisplay').textContent = totalOrderValue;
+            localStorage.setItem('totalOrderValue', totalOrderValue);
         }
 
-        function goHome() {
-            window.location.href = 'index.html';
+        function handleSubmit(e) {
+            e.preventDefault();
+            const userID = localStorage.getItem('userID');
+            if (!userID) {
+                alert('Please login first!');
+                showLoginModal();
+                return;
+            }
+            alert('✅ Payment processed successfully (demo mode)');
+            window.location.href = 'orderconfirmation.html';
+        }
+
+        function initPage() {
+            calculateTotal();
+            updateCartCount();
+            updateUserDisplay();
+            if (getCart().length === 0) {
+                alert('Your cart is empty. Redirecting to cart...');
+                window.location.href = 'cart.html';
+            }
         }
     </script>
 </body>
