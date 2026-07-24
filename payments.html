@@ -162,6 +162,8 @@
                 return;
             }
             alert('✅ Payment processed successfully (demo mode)');
+            window.pagesense = window.pagesense || [];
+            window.pagesense.push(['trackRevenue','Qty3pSY', totalOrderValue]);
             window.location.href = 'orderconfirmation.html';
         }
 
